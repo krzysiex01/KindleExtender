@@ -23,3 +23,6 @@ Konspekt:
 - tworzenie kopii zapasowej
 - wyświetlanie statystyk dla zgromadzonych danych
 - możliwość sprawdzenia tłumaczenia dla wybranego słowa
+
+Uwagi:
+Przykładowe dane znajdują się w folderze SampleData

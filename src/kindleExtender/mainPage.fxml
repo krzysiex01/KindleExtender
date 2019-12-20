@@ -1,0 +1,76 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<VBox fx:controller="kindleExtender.MainPageController"
+          xmlns:fx="http://javafx.com/fxml">
+    <VBox GridPane.rowIndex="1" VBox.vgrow="ALWAYS" alignment="TOP_CENTER">
+        <MenuBar fx:id="menuBar" >
+            <menus>
+                <Menu text="File">
+                    <items>
+                        <MenuItem text="Open..." onAction="#openFileAction">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP"
+                                                    shortcut="UP"></KeyCodeCombination>
+                            </accelerator>
+                        </MenuItem>
+                        <MenuItem text="Save" onAction="#saveAction">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP"
+                                                    shortcut="UP"></KeyCodeCombination>
+                            </accelerator>
+                        </MenuItem>
+                        <MenuItem text="Save As" onAction="#saveAsAction">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="DOWN"
+                                                    shortcut="UP"></KeyCodeCombination>
+                            </accelerator>
+                        </MenuItem>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="Exit" onAction="#exitAction"/>
+                    </items>
+                </Menu>
+                <Menu text="Export">
+                    <items>
+                        <MenuItem text="Export to CSV" onAction="#exportToCSVAction"/>
+                    </items>
+                </Menu>
+                <Menu text="Help">
+                    <items>
+                        <MenuItem text="About"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </VBox>
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" minHeight="100" prefWidth="800">
+        <tabs>
+            <Tab text="My words">
+                <TableView fx:id="wordsListTableView">
+
+                </TableView>
+            </Tab>
+            <Tab text="My books">
+                <TableView fx:id="booksListTableView">
+
+                </TableView>
+            </Tab>
+            <Tab text="History">
+                <TableView fx:id="lookUpsListTableView">
+
+                </TableView>
+            </Tab>
+            <Tab text="Stats">
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox>

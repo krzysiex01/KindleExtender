@@ -21,6 +21,7 @@ public class SQLHelper {
         hasUnsavedChanges = false;
     }
 
+    // Indicates if any (uncomitted) changes to database have been made
     public boolean hasUnsavedChanges;
 
     private Connection _conn;
@@ -110,7 +111,7 @@ public class SQLHelper {
 
             // loop through the result set
             while (rs.next()) {
-                lookUpList.add(new LookUp(rs.getString("id"), rs.getString("word"), rs.getString("usage"), rs.getString("title")));
+                lookUpList.add(new LookUp(rs.getString("id"), rs.getString("word"), rs.getString("usage"), rs.getString("title"), rs.getLong("timestamp")));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());

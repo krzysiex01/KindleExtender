@@ -10,8 +10,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.BarChart?>
 <VBox fx:controller="kindleExtender.MainPageController"
-          xmlns:fx="http://javafx.com/fxml">
+      xmlns:fx="http://javafx.com/fxml">
     <VBox GridPane.rowIndex="1" VBox.vgrow="ALWAYS" alignment="TOP_CENTER">
         <MenuBar fx:id="menuBar" >
             <menus>
@@ -70,6 +72,9 @@
                 </TableView>
             </Tab>
             <Tab text="Stats">
+                <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true">
+                    <VBox fx:id="statsVBox" alignment="CENTER"/>
+                </ScrollPane>
             </Tab>
         </tabs>
     </TabPane>

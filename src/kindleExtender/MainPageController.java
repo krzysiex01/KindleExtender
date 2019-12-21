@@ -3,18 +3,28 @@ package kindleExtender;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.*;
+import javafx.util.StringConverter;
 import kindleExtender.cell.EditCell;
+import kindleExtender.converters.ToDateConverter;
 import kindleExtender.helpers.SQLHelper;
+import kindleExtender.helpers.StatsHelper;
 import kindleExtender.models.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 
 import java.io.File;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 public class MainPageController implements Initializable {
@@ -32,8 +42,12 @@ public class MainPageController implements Initializable {
     public TableView lookUpsListTableView;
     public ObservableList<LookUp> lookUpsObservableList;
 
-    // Helper class that allows user to get and edit data from .db file
+    public VBox statsVBox;
+
+    // Helper class that allows to get and edit data from .db file
     private SQLHelper sqlHelper;
+    // Helper class providing statistics to be displayed for user
+    private StatsHelper statsHelper;
 
     // Action called on application exit
     public void exitAction(ActionEvent actionEvent) {
@@ -75,6 +89,8 @@ public class MainPageController implements Initializable {
         if (selectedFile != null) {
             // Create new instance of SQLHelper for selected file
             sqlHelper = new SQLHelper(selectedFile.getAbsolutePath());
+            // Create new instance of StatsHelper for selected file
+            statsHelper = new StatsHelper();
 
             // Get data from database
             wordsObservableList = FXCollections.observableList(sqlHelper.getWords());
@@ -85,6 +101,9 @@ public class MainPageController implements Initializable {
             wordsListTableView.setItems(wordsObservableList);
             booksListTableView.setItems(booksObservableList);
             lookUpsListTableView.setItems(lookUpsObservableList);
+
+            // Refresh statistics for just loaded data
+            refreshStats();
         }
     }
 
@@ -100,6 +119,37 @@ public class MainPageController implements Initializable {
 
     public void exportToCSVAction(ActionEvent actionEvent) {
         // TODO: exportToCSVAction
+    }
+
+    private void refreshStats() {
+        // Create new charts
+        PieChart bookPieChart = createBooksChart();
+        BarChart wordBarChart = createWordsChart();
+        ScatterChart lookUpsScatterChart = createLookUpsChart();
+
+        // Remove existing charts from view
+        statsVBox.getChildren().clear();
+
+        // Create label for each chart
+        Label l1 = new Label("Frequently checked words");
+        Label l2 = new Label("Most popular books");
+        Label l3 = new Label("Words checked history");
+
+        // Setting properties of each label
+        l1.setFont(new Font(20));
+        l1.setPadding(new Insets(30, 0, 2, 0));
+        l2.setFont(new Font(20));
+        l2.setPadding(new Insets(30, 0, 2, 0));
+        l3.setFont(new Font(20));
+        l3.setPadding(new Insets(30, 0, 2, 0));
+
+        // Add created elements to view
+        statsVBox.getChildren().add(l1);
+        statsVBox.getChildren().add(wordBarChart);
+        statsVBox.getChildren().add(l2);
+        statsVBox.getChildren().add(bookPieChart);
+        statsVBox.getChildren().add(l3);
+        statsVBox.getChildren().add(lookUpsScatterChart);
     }
 
     private void setTableEditable() {
@@ -147,6 +197,80 @@ public class MainPageController implements Initializable {
 
             wordsListTableView.refresh();
         });
+    }
+
+    private ScatterChart createLookUpsChart() {
+        // Get data to display from stats helpers
+        var lookUps = statsHelper.getLookUpTimeLine(8, lookUpsObservableList);
+
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("Time");
+        xAxis.setForceZeroInRange(false);
+        xAxis.setTickLabelFormatter(new StringConverter<Number>() {
+            DateFormat dateFormat = new SimpleDateFormat("MM/yyyy");
+
+            @Override
+            public String toString(Number number) {
+                return dateFormat.format(new Date(number.longValue()));
+            }
+
+            @Override
+            public Number fromString(String s) {
+                return null;
+            }
+        });
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Words checked");
+
+        ScatterChart scatterChart = new ScatterChart(xAxis, yAxis);
+        XYChart.Series dataSeries1 = new XYChart.Series();
+
+        for (var data : lookUps) {
+            dataSeries1.getData().add(data);
+        }
+        scatterChart.getData().add(dataSeries1);
+
+        return scatterChart;
+    }
+
+    private PieChart createBooksChart() {
+        // Get data to display from stats helpers
+        var books = statsHelper.getTopBooks(3, booksObservableList);
+
+        // Create PieChart for books
+        PieChart bookPieChart = new PieChart();
+        for (var book : books) {
+            PieChart.Data slice = new PieChart.Data(book.getTitle(), book.getWordCount());
+            bookPieChart.getData().add(slice);
+        }
+
+        return bookPieChart;
+    }
+
+    private BarChart createWordsChart() {
+        // Get data to display from stats helpers
+        var words = statsHelper.getTopWords(10, wordsObservableList);
+
+        // Create axis for BarChart
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Words");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Frequency");
+
+        // Create BarChart with defined axis
+        BarChart wordBarChart = new BarChart(xAxis, yAxis);
+
+        // Create series: one for each language
+        XYChart.Series dataSeries1 = new XYChart.Series();
+        dataSeries1.setName("EN");
+
+        // Add data to each dataSeries
+        for (var word : words) {
+            dataSeries1.getData().add(new XYChart.Data(word.getWord(), word.getCount()));
+        }
+        wordBarChart.getData().add(dataSeries1);
+
+        return wordBarChart;
     }
 
     @Override

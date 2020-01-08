@@ -15,7 +15,7 @@
 <VBox fx:controller="kindleExtender.MainPageController"
       xmlns:fx="http://javafx.com/fxml">
     <VBox GridPane.rowIndex="1" VBox.vgrow="ALWAYS" alignment="TOP_CENTER">
-        <MenuBar fx:id="menuBar" >
+        <MenuBar fx:id="menuBar">
             <menus>
                 <Menu text="File">
                     <items>
@@ -41,6 +41,22 @@
                         <MenuItem text="Exit" onAction="#exitAction"/>
                     </items>
                 </Menu>
+                <Menu text="Edit">
+                    <items>
+                        <MenuItem text="Remove selected" onAction="#removeSelectedLookUps">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="DELETE" control="DOWN" meta="UP" shift="UP"
+                                                    shortcut="UP"></KeyCodeCombination>
+                            </accelerator>
+                        </MenuItem>
+                        <MenuItem text="Clean up..." onAction="#openCleanUpWindow">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="K" control="DOWN" meta="UP" shift="UP"
+                                                    shortcut="UP"></KeyCodeCombination>
+                            </accelerator>
+                        </MenuItem>
+                    </items>
+                </Menu>
                 <Menu text="Export">
                     <items>
                         <MenuItem text="Export to CSV" onAction="#exportToCSVAction"/>
@@ -58,7 +74,6 @@
         <tabs>
             <Tab text="My words">
                 <TableView fx:id="wordsListTableView">
-
                 </TableView>
             </Tab>
             <Tab text="My books">

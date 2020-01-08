@@ -2,24 +2,29 @@ package kindleExtender;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.*;
 import javafx.util.StringConverter;
 import kindleExtender.cell.EditCell;
 import kindleExtender.converters.ToDateConverter;
+import kindleExtender.helpers.CleanUpHelper;
 import kindleExtender.helpers.SQLHelper;
 import kindleExtender.helpers.StatsHelper;
 import kindleExtender.models.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-
 import java.io.File;
 import java.net.URL;
 import java.text.DateFormat;
@@ -28,26 +33,30 @@ import java.util.Date;
 import java.util.ResourceBundle;
 
 public class MainPageController implements Initializable {
+    public Stage primaryStage;
 
     // Table with list of words
     public TableView wordsListTableView;
-    public ObservableList<Word> wordsObservableList;
+    private ObservableList<Word> wordsObservableList;
     TableColumn<Word, String> wordColumn;
 
     // Table with list of books
     public TableView booksListTableView;
-    public ObservableList<Book> booksObservableList;
+    private ObservableList<Book> booksObservableList;
 
     // Table with search history
     public TableView lookUpsListTableView;
-    public ObservableList<LookUp> lookUpsObservableList;
+    private ObservableList<LookUp> lookUpsObservableList;
 
+    // VBox which stores all charts and diagrams with statistics for currently open file
     public VBox statsVBox;
 
     // Helper class that allows to get and edit data from .db file
     private SQLHelper sqlHelper;
     // Helper class providing statistics to be displayed for user
     private StatsHelper statsHelper;
+    // Helper class providing methods to maintain consistency of data and improving readability of entries
+    private CleanUpHelper cleanUpHelper;
 
     // Action called on application exit
     public void exitAction(ActionEvent actionEvent) {
@@ -61,7 +70,7 @@ public class MainPageController implements Initializable {
                 ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
                 alert.getButtonTypes().setAll(okButton, noButton, cancelButton);
                 var type = alert.showAndWait();
-                if (!type.isPresent())
+                if (type.isEmpty())
                     return;
                 if (type.get().getButtonData() == ButtonBar.ButtonData.YES) {
                     sqlHelper.commit();
@@ -75,7 +84,6 @@ public class MainPageController implements Initializable {
         }
         Platform.exit();
     }
-
     // Action called when user want to open new file
     public void openFileAction(ActionEvent actionEvent) {
         // Let user choose the file
@@ -89,6 +97,8 @@ public class MainPageController implements Initializable {
         if (selectedFile != null) {
             // Create new instance of SQLHelper for selected file
             sqlHelper = new SQLHelper(selectedFile.getAbsolutePath());
+            // Create new instance of CleanUpHelper for selected file
+            cleanUpHelper = new CleanUpHelper(sqlHelper);
             // Create new instance of StatsHelper for selected file
             statsHelper = new StatsHelper();
 
@@ -119,6 +129,58 @@ public class MainPageController implements Initializable {
 
     public void exportToCSVAction(ActionEvent actionEvent) {
         // TODO: exportToCSVAction
+    }
+
+    public void removeSelectedWords(ActionEvent actionEvent) {
+    }
+
+    public void removeSelectedLookUps(ActionEvent actionEvent) {
+        for (LookUp l : lookUpsObservableList) {
+            if (l.isDelete())
+                sqlHelper.removeLookUp(l.id);
+        }
+        lookUpsObservableList.removeIf(w -> w.isDelete());
+    }
+
+    public void openCleanUpWindow(ActionEvent actionEvent) {
+        if(sqlHelper == null)
+            return;
+
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("cleanUpPage.fxml"));
+            Parent root1 = (Parent) fxmlLoader.load();
+            // New window (Stage)
+            Stage newWindow = new Stage();
+            newWindow.setResizable(false);
+            newWindow.setScene(new Scene(root1));
+            newWindow.setTitle("Clean up");
+            // Specifies the modality for new window.
+            newWindow.initModality(Modality.WINDOW_MODAL);
+            // Specifies the owner Window (parent) for new window
+            newWindow.initOwner(primaryStage);
+            // Set position of second window, related to primary window.
+            newWindow.setX(primaryStage.getX() + 200);
+            newWindow.setY(primaryStage.getY() + 100);
+            CleanUpPageController cleanUpPageController = fxmlLoader.<CleanUpPageController>getController();
+            cleanUpPageController.setCleanUpHelper(cleanUpHelper);
+            cleanUpPageController.setSQLHelper(sqlHelper);
+            newWindow.showAndWait();
+
+            statsHelper = new StatsHelper();
+            // Get updated data from database
+            wordsObservableList = FXCollections.observableList(sqlHelper.getWords());
+            booksObservableList = FXCollections.observableList(sqlHelper.getBooks());
+            lookUpsObservableList = FXCollections.observableList(sqlHelper.getLookUps());
+            // Show user updated data
+            wordsListTableView.setItems(wordsObservableList);
+            booksListTableView.setItems(booksObservableList);
+            lookUpsListTableView.setItems(lookUpsObservableList);
+            // Refresh statistics for just updated data
+            refreshStats();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void refreshStats() {
@@ -152,7 +214,7 @@ public class MainPageController implements Initializable {
         statsVBox.getChildren().add(lookUpsScatterChart);
     }
 
-    private void setTableEditable() {
+    private void setWordsListTableEditable() {
         wordsListTableView.setEditable(true);
         // allows the individual cells to be selected
         wordsListTableView.getSelectionModel().cellSelectionEnabledProperty().set(true);
@@ -279,7 +341,7 @@ public class MainPageController implements Initializable {
         wordColumn.setCellValueFactory(new PropertyValueFactory<>("word"));
         wordColumn.setMinWidth(150);
         setupWordColumn(); // allows editing specified columns
-        setTableEditable(); // make word table editable
+        setWordsListTableEditable(); // make word table editable
 
         TableColumn<String, Word> countColumn = new TableColumn<>("Count");
         countColumn.setCellValueFactory(new PropertyValueFactory<>("count"));
@@ -308,12 +370,18 @@ public class MainPageController implements Initializable {
 
         TableColumn<String, LookUp> lookUpsColumn3 = new TableColumn<>("Book");
         lookUpsColumn3.setCellValueFactory(new PropertyValueFactory<>("book"));
-        lookUpsColumn3.setMinWidth(300);
+        lookUpsColumn3.setMinWidth(250);
 
+        TableColumn<Boolean, LookUp> lookUpsColumn4 = new TableColumn<>("Delete");
+        lookUpsColumn4.setCellValueFactory(new PropertyValueFactory<Boolean, LookUp>("delete"));
+        lookUpsColumn4.setCellFactory(tc -> new CheckBoxTableCell<Boolean, LookUp>());
+
+        lookUpsListTableView.setEditable(true);
 
         lookUpsListTableView.getColumns().add(lookUpsColumn1);
         lookUpsListTableView.getColumns().add(lookUpsColumn2);
         lookUpsListTableView.getColumns().add(lookUpsColumn3);
+        lookUpsListTableView.getColumns().add(lookUpsColumn4);
 
     }
 }

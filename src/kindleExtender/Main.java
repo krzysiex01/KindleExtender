@@ -17,6 +17,7 @@ public class Main extends Application {
         FXMLLoader load = new FXMLLoader(getClass().getResource("mainPage.fxml"));
         Parent root = load.load();
         MainPageController mainPageController = load.getController();
+        mainPageController.primaryStage = primaryStage;
 
         primaryStage.setTitle("Kindle Extender");
         primaryStage.setScene(new Scene(root));

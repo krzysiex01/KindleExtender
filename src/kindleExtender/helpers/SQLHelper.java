@@ -16,7 +16,7 @@ public class SQLHelper {
         try {
             _conn.setAutoCommit(false);
         } catch (SQLException e) {
-
+            System.out.println(e.getMessage());
         }
         hasUnsavedChanges = false;
     }
@@ -47,7 +47,7 @@ public class SQLHelper {
 
             // loop through the result set
             while (rs.next()) {
-                wordList.add(new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id"))));
+                wordList.add(new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id")), rs.getString("stem")));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -61,7 +61,7 @@ public class SQLHelper {
         try {
             Statement stmt = _conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
-            return new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id")));
+            return new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id")), rs.getString("stem"));
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             return null;
@@ -103,7 +103,7 @@ public class SQLHelper {
 
     public List<LookUp> getLookUps() {
         String sql = "SELECT * FROM LOOKUPS INNER JOIN WORDS ON LOOKUPS.word_key = WORDS.id INNER JOIN BOOK_INFO ON LOOKUPS.book_key=BOOK_INFO.id";
-        List<LookUp> lookUpList = new ArrayList<LookUp>();
+        List<LookUp> lookUpList = new ArrayList<>();
 
         try {
             Statement stmt = _conn.createStatement();
@@ -149,15 +149,62 @@ public class SQLHelper {
     }
 
     public void removeWord(String wordKey) {
-        // TODO: removeWord method
+        String sql = "DELETE FROM WORDS WHERE id = ?";
+        try {
+            PreparedStatement stmt = _conn.prepareStatement(sql);
+            stmt.setString(1,wordKey);
+            stmt.executeUpdate();
+            hasUnsavedChanges = true;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    public void removeWords(Collection<String> keys) {
-        // TODO: removeWords method
+    public void removeLookUp(String lookUpKey){
+        String sql = "DELETE FROM LOOKUPS WHERE id = ?";
+        try {
+            PreparedStatement stmt = _conn.prepareStatement(sql);
+            stmt.setString(1,lookUpKey);
+            stmt.executeUpdate();
+            hasUnsavedChanges = true;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    public void updateWord() {
-        // TODO: Update word function
+    public void updateWord(String wordKey, String newValue) {
+        String sql = "UPDATE WORDS SET word = ?"
+                + "WHERE id = ?";
+        try {
+             PreparedStatement stmt = _conn.prepareStatement(sql);
+            stmt.setString(1, newValue);
+            stmt.setString(2, wordKey);
+            stmt.executeUpdate();
+            hasUnsavedChanges = true;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // Merges two words by removing one of them (wordKey2) and setting new value (for wordKey2)
+    public void mergeWords(String wordKey1, String wordKey2, String newValue) {
+        // Update LOOKUPS table
+        String sql = "UPDATE LOOKUPS SET wordKey = ? "
+                + "WHERE word_key = ?";
+        try {
+            PreparedStatement stmt = _conn.prepareStatement(sql);
+            stmt.setString(1, wordKey1);
+            stmt.setString(2, wordKey2);
+            stmt.executeUpdate();
+            hasUnsavedChanges = true;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        // Sets new common value for two merged records
+        updateWord(wordKey1, newValue);
+        // Remove unused foreign key in words table
+        removeWord(wordKey2);
     }
 
     public void commit() {

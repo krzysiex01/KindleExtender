@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="kindleExtender.CleanUpPageController"
+            prefHeight="200.0" prefWidth="350.0">
+<VBox alignment="CENTER_LEFT" prefWidth="350" prefHeight="200" spacing="10">
+    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+    <CheckBox text="Remove duplicates" VBox.vgrow="ALWAYS" fx:id="duplicatesCheckbox"/>
+    <CheckBox text="Remove inconsistent entries" VBox.vgrow="ALWAYS" fx:id="inconsistentCheckbox"/>
+    <CheckBox text="Remove non-alphabetic characters" VBox.vgrow="ALWAYS" fx:id="nonAlpCharactersCheckbox"/>
+    <Button VBox.vgrow="ALWAYS" alignment="CENTER" onAction="#start">Clean!</Button>
+</VBox>
+</AnchorPane>

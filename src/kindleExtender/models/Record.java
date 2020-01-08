@@ -5,5 +5,5 @@ public class Record {
         this.id = id;
     }
 
-    String id;
+    public String id;
 }

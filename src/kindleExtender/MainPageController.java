@@ -1,7 +1,10 @@
 package kindleExtender;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -12,25 +15,27 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.stage.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
-import kindleExtender.cell.EditCell;
-import kindleExtender.converters.ToDateConverter;
-import kindleExtender.helpers.CleanUpHelper;
-import kindleExtender.helpers.SQLHelper;
-import kindleExtender.helpers.StatsHelper;
-import kindleExtender.models.*;
-import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import java.io.File;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import kindleExtender.cell.EditCell;
+import kindleExtender.helpers.CleanUpHelper;
+import kindleExtender.helpers.SQLHelper;
+import kindleExtender.helpers.StatsHelper;
+import kindleExtender.models.Book;
+import kindleExtender.models.LookUp;
+import kindleExtender.models.Word;
 
 public class MainPageController implements Initializable {
     public Stage primaryStage;
@@ -50,6 +55,9 @@ public class MainPageController implements Initializable {
 
     // VBox which stores all charts and diagrams with statistics for currently open file
     public VBox statsVBox;
+
+    // Menu element that contains available languages codes for opened file
+    public Menu languageMenu;
 
     // Helper class that allows to get and edit data from .db file
     private SQLHelper sqlHelper;
@@ -93,7 +101,6 @@ public class MainPageController implements Initializable {
         );
         File selectedFile = fileChooser.showOpenDialog(wordsListTableView.getScene().getWindow());
 
-
         if (selectedFile != null) {
             // Create new instance of SQLHelper for selected file
             sqlHelper = new SQLHelper(selectedFile.getAbsolutePath());
@@ -101,6 +108,9 @@ public class MainPageController implements Initializable {
             cleanUpHelper = new CleanUpHelper(sqlHelper);
             // Create new instance of StatsHelper for selected file
             statsHelper = new StatsHelper();
+
+            // Creates menu items in languageMenu from language list created from opened file
+            createLanguageMenuItems(sqlHelper.getCurrentLanguageFilters());
 
             // Get data from database
             wordsObservableList = FXCollections.observableList(sqlHelper.getWords());
@@ -165,19 +175,8 @@ public class MainPageController implements Initializable {
             cleanUpPageController.setCleanUpHelper(cleanUpHelper);
             cleanUpPageController.setSQLHelper(sqlHelper);
             newWindow.showAndWait();
-
-            statsHelper = new StatsHelper();
-            // Get updated data from database
-            wordsObservableList = FXCollections.observableList(sqlHelper.getWords());
-            booksObservableList = FXCollections.observableList(sqlHelper.getBooks());
-            lookUpsObservableList = FXCollections.observableList(sqlHelper.getLookUps());
-            // Show user updated data
-            wordsListTableView.setItems(wordsObservableList);
-            booksListTableView.setItems(booksObservableList);
-            lookUpsListTableView.setItems(lookUpsObservableList);
-            // Refresh statistics for just updated data
-            refreshStats();
-
+            // Reload data from modified sqlHelper instance and refresh stats
+            refreshAllView();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -310,9 +309,6 @@ public class MainPageController implements Initializable {
     }
 
     private BarChart createWordsChart() {
-        // Get data to display from stats helpers
-        var words = statsHelper.getTopWords(10, wordsObservableList);
-
         // Create axis for BarChart
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Words");
@@ -323,16 +319,60 @@ public class MainPageController implements Initializable {
         BarChart wordBarChart = new BarChart(xAxis, yAxis);
 
         // Create series: one for each language
-        XYChart.Series dataSeries1 = new XYChart.Series();
-        dataSeries1.setName("EN");
+        for(String lang : sqlHelper.getCurrentLanguageFilters()) {
+            XYChart.Series dataSeries = new XYChart.Series();
+            dataSeries.setName(lang.toUpperCase());
 
-        // Add data to each dataSeries
-        for (var word : words) {
-            dataSeries1.getData().add(new XYChart.Data(word.getWord(), word.getCount()));
+            // Get data to display from stats helpers
+            List<Word> words = statsHelper.getTopWords(10, wordsObservableList, lang);
+            // Add data to each dataSeries
+            for (var word : words) {
+
+                    dataSeries.getData().add(new XYChart.Data(word.getWord(), word.getCount()));
+            }
+            wordBarChart.getData().add(dataSeries);
         }
-        wordBarChart.getData().add(dataSeries1);
 
         return wordBarChart;
+    }
+
+    private void createLanguageMenuItems(List<String> languages) {
+        // Remove existing elements
+        languageMenu.getItems().clear();
+        // Create custom event handler for MenuItems
+        EventHandler<ActionEvent> event = e -> {
+            if (((CheckMenuItem)e.getSource()).isSelected()) {
+                sqlHelper.addLanguage(((CheckMenuItem)e.getSource()).getText());
+            }
+            else {
+                sqlHelper.removeLanguage(((CheckMenuItem)e.getSource()).getText());
+            }
+            refreshAllView();
+        };
+        // Add menu elements to languageMenu
+        for(var lang: languages) {
+            // Create menu item
+            CheckMenuItem menuitem = new CheckMenuItem(lang);
+            menuitem.setSelected(true);
+            // Add event
+            menuitem.setOnAction(event);
+            // Add to language menu
+            languageMenu.getItems().add(menuitem);
+        }
+    }
+
+    private void refreshAllView() {
+        statsHelper = new StatsHelper();
+        // Get updated data from database
+        wordsObservableList = FXCollections.observableList(sqlHelper.getWords());
+        booksObservableList = FXCollections.observableList(sqlHelper.getBooks());
+        lookUpsObservableList = FXCollections.observableList(sqlHelper.getLookUps());
+        // Show user updated data
+        wordsListTableView.setItems(wordsObservableList);
+        booksListTableView.setItems(booksObservableList);
+        lookUpsListTableView.setItems(lookUpsObservableList);
+        // Refresh statistics for just updated data
+        refreshStats();
     }
 
     @Override

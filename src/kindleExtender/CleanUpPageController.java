@@ -60,7 +60,7 @@ public class CleanUpPageController {
         // Close window
         var window = ((Button)actionEvent.getSource()).getScene().getWindow();
         if (window instanceof Stage) {
-            ((Stage) window).close();
+            ((Stage)window).close();
         }
     }
 }

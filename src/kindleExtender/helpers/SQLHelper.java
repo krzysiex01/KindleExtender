@@ -4,10 +4,9 @@ import kindleExtender.models.Book;
 import kindleExtender.models.LookUp;
 import kindleExtender.models.Word;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class SQLHelper {
 
@@ -19,10 +18,14 @@ public class SQLHelper {
             System.out.println(e.getMessage());
         }
         hasUnsavedChanges = false;
+        currentLanguageFilters = getListOfLanguages();
     }
 
     // Indicates if any (uncomitted) changes to database have been made
     public boolean hasUnsavedChanges;
+
+    // Contains list of currently applied Language filters, stored as language codes
+    private List<String> currentLanguageFilters;
 
     private Connection _conn;
 
@@ -37,8 +40,49 @@ public class SQLHelper {
         return conn;
     }
 
+    private String getCurrentFilters() {
+        StringBuilder result = new StringBuilder();
+        for (var langCode: currentLanguageFilters){
+            result.append("lang=").append("\'").append(langCode).append("\'").append(" OR ");
+        }
+        if (result.length() == 0)
+            result.append("lang=").append("empty").append(" OR ");
+
+        return result.substring(0,result.length()-4);
+    }
+
+    private String getCurrentFiltersWithColumnName() {
+        StringBuilder result = new StringBuilder();
+        for (var langCode: currentLanguageFilters){
+            result.append("WORDS.lang=").append("\'").append(langCode).append("\'").append(" OR ");
+        }
+        if (result.length() == 0)
+            result.append("lang=").append("empty").append(" OR ");
+
+        return result.substring(0,result.length()-4);
+    }
+
+    private List<String> getListOfLanguages() {
+        String sql = "SELECT DISTINCT lang FROM WORDS";
+        List<String> langList = new ArrayList<>();
+
+        try {
+            Statement stmt = _conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            // loop through the result set
+            while (rs.next()) {
+                langList.add(rs.getString("lang"));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return langList;
+    }
+
     public List<Word> getWords() {
-        String sql = "SELECT * FROM WORDS";
+        String sql = "SELECT * FROM WORDS WHERE " + getCurrentFilters();
         List<Word> wordList = new ArrayList<Word>();
 
         try {
@@ -47,7 +91,7 @@ public class SQLHelper {
 
             // loop through the result set
             while (rs.next()) {
-                wordList.add(new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id")), rs.getString("stem")));
+                wordList.add(new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id")), rs.getString("stem"), rs.getString("lang")));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -61,7 +105,7 @@ public class SQLHelper {
         try {
             Statement stmt = _conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
-            return new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id")), rs.getString("stem"));
+            return new Word(rs.getString("id"), rs.getString("word"), getLookUpsCountOnWordKey(rs.getString("id")), rs.getString("stem"), rs.getString("lang"));
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             return null;
@@ -69,7 +113,7 @@ public class SQLHelper {
     }
 
     public List<Book> getBooks() {
-        String sql = "SELECT * FROM BOOK_INFO";
+        String sql = "SELECT * FROM BOOK_INFO WHERE " + getCurrentFilters();
         List<Book> bookList = new ArrayList<Book>();
 
         try {
@@ -102,7 +146,7 @@ public class SQLHelper {
     }
 
     public List<LookUp> getLookUps() {
-        String sql = "SELECT * FROM LOOKUPS INNER JOIN WORDS ON LOOKUPS.word_key = WORDS.id INNER JOIN BOOK_INFO ON LOOKUPS.book_key=BOOK_INFO.id";
+        String sql = "SELECT * FROM LOOKUPS INNER JOIN WORDS ON LOOKUPS.word_key = WORDS.id INNER JOIN BOOK_INFO ON LOOKUPS.book_key=BOOK_INFO.id WHERE " + getCurrentFiltersWithColumnName();
         List<LookUp> lookUpList = new ArrayList<>();
 
         try {
@@ -235,5 +279,19 @@ public class SQLHelper {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+    }
+
+    public void addLanguage(String code) {
+        if (!currentLanguageFilters.contains(code))
+            currentLanguageFilters.add(code);
+    }
+
+    public void removeLanguage(String code) {
+        if (currentLanguageFilters.contains(code))
+            currentLanguageFilters.remove(code);
+    }
+
+    public List<String> getCurrentLanguageFilters() {
+        return currentLanguageFilters;
     }
 }

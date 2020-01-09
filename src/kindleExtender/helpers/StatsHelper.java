@@ -23,9 +23,10 @@ public class StatsHelper {
         return result;
     }
 
-    public List<Word> getTopWords(int count, List<Word> words) {
+    public List<Word> getTopWords(int count, List<Word> words,String langCode) {
         List<Word> result = new ArrayList<>();
         words.stream()
+                .filter(word -> word.getLanguage().equals(langCode))
                 .sorted(Comparator.comparingInt(Word::getCount).reversed())
                 .limit(count)
                 .forEach((word) -> {
@@ -36,6 +37,8 @@ public class StatsHelper {
 
     public List<XYChart.Data> getLookUpTimeLine(int numberOfIntervals, List<LookUp> lookUpsList) {
         List<XYChart.Data> result = new ArrayList<>();
+        if (lookUpsList == null || lookUpsList.isEmpty())
+            return result;
 
         lookUpsList.sort(Comparator.comparingLong(LookUp::getTimestamp));
 

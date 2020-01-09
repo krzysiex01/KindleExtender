@@ -25,6 +25,7 @@
                                                 shortcut="UP"/>
                         </accelerator>
                     </MenuItem>
+                    <MenuItem text="Export to CSV" onAction="#exportToCSVAction"/>
                     <SeparatorMenuItem/>
                     <MenuItem text="Exit" onAction="#exitAction"/>
                 </items>
@@ -45,9 +46,9 @@
                     </MenuItem>
                 </items>
             </Menu>
-            <Menu text="Export">
+            <Menu text="Languages" fx:id="languageMenu">
                 <items>
-                    <MenuItem text="Export to CSV" onAction="#exportToCSVAction"/>
+                    <MenuItem disable="true" text="None"></MenuItem>
                 </items>
             </Menu>
             <Menu text="Help">

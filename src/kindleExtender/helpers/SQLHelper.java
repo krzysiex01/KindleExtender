@@ -4,13 +4,16 @@ import kindleExtender.models.Book;
 import kindleExtender.models.LookUp;
 import kindleExtender.models.Word;
 
-import java.awt.image.AreaAveragingScaleFilter;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.*;
 import java.util.*;
 
 public class SQLHelper {
 
     public SQLHelper(String fileURL) {
+        this.fileURL = fileURL;
         _conn = connect(fileURL);
         try {
             _conn.setAutoCommit(false);
@@ -26,7 +29,7 @@ public class SQLHelper {
 
     // Contains list of currently applied Language filters, stored as language codes
     private List<String> currentLanguageFilters;
-
+    private String fileURL;
     private Connection _conn;
 
     private static Connection connect(String fileURL) {
@@ -230,7 +233,7 @@ public class SQLHelper {
         }
     }
 
-    // Merges two words by removing one of them (wordKey2) and setting new value (for wordKey2)
+    // Merges two words by removing one of them (wordKey2) and setting new value (for wordKey1)
     public void mergeWords(String wordKey1, String wordKey2, String newValue) {
         // Update LOOKUPS table
         String sql = "UPDATE LOOKUPS SET wordKey = ? "
@@ -278,6 +281,61 @@ public class SQLHelper {
             }
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
+        }
+    }
+
+    public void exportDatabase(String fullPath) {
+        // Copy template database from app resources
+        try {
+            var source = new File("src/resources/vocabTemplate.db");
+            var dest = new File(fullPath);
+
+            Files.copy(source.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        String sqlAttach = "ATTACH DATABASE ? AS newDatabase";
+        String sqlInsertBooks = "INSERT INTO newDatabase.BOOK_INFO SELECT * FROM main.BOOK_INFO";
+        String sqlInsertWords = "INSERT INTO newDatabase.WORDS SELECT * FROM main.WORDS";
+        String sqlInsertLookUps = "INSERT INTO newDatabase.LOOKUPS SELECT * FROM main.LOOKUPS";
+        String sqlInsertVersion = "INSERT INTO newDatabase.VERSION SELECT * FROM main.VERSION";
+        String sqlInsertDict = "INSERT INTO newDatabase.DICT_INFO SELECT * FROM main.DICT_INFO";
+        String sqlInsertMetaData = "INSERT INTO newDatabase.METADATA SELECT * FROM main.METADATA";
+        String sqlDetach = "DETACH newDatabase";
+
+        try {
+            // Attach database
+            PreparedStatement stmt = _conn.prepareStatement(sqlAttach);
+            stmt.setString(1,fullPath);
+            stmt.execute();
+
+            stmt = _conn.prepareStatement(sqlInsertBooks);
+            stmt.executeUpdate();
+
+            stmt = _conn.prepareStatement(sqlInsertDict);
+            stmt.executeUpdate();
+
+            stmt = _conn.prepareStatement(sqlInsertMetaData);
+            stmt.executeUpdate();
+
+            stmt = _conn.prepareStatement(sqlInsertVersion);
+            stmt.executeUpdate();
+
+            stmt = _conn.prepareStatement(sqlInsertWords);
+            stmt.executeUpdate();
+
+            stmt = _conn.prepareStatement(sqlInsertLookUps);
+            stmt.executeUpdate();
+            // Commit changes
+            commit();
+            stmt.close();
+            // Reconnect - because of bug with detaching database
+            _conn.close();
+            _conn = connect(fileURL);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
     }
 

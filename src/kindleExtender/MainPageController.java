@@ -134,7 +134,22 @@ public class MainPageController implements Initializable {
     }
 
     public void saveAsAction(ActionEvent actionEvent) {
-        // TODO: saveAsAction
+        if (sqlHelper == null)
+            return;
+
+        FileChooser fileChooser = new FileChooser();
+
+        //Set extension filter
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("SQLite database files (*.db)", "*.db");
+        fileChooser.getExtensionFilters().add(extFilter);
+
+        //Show save file dialog
+        File file = fileChooser.showSaveDialog(primaryStage);
+
+        if(file != null) {
+            // Export database to file
+            sqlHelper.exportDatabase(file.getAbsolutePath());
+        }
     }
 
     public void exportToCSVAction(ActionEvent actionEvent) {

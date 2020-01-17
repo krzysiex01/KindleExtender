@@ -53,11 +53,8 @@
             </Menu>
             <Menu text="Translation">
                 <items>
-                    <MenuItem text="Start" onAction="#translateWords"></MenuItem>
+                    <MenuItem text="Translate all" onAction="#translateWords"></MenuItem>
                     <SeparatorMenuItem></SeparatorMenuItem>
-                    <RadioMenuItem text="en"></RadioMenuItem>
-                    <RadioMenuItem text="es"></RadioMenuItem>
-                    <RadioMenuItem text="pl"></RadioMenuItem>
                 </items>
             </Menu>
             <Menu text="Help">

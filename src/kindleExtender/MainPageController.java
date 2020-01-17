@@ -43,6 +43,7 @@ public class MainPageController implements Initializable {
     public TableView wordsListTableView;
     private ObservableList<Word> wordsObservableList;
     TableColumn<Word, String> wordColumn;
+    TableColumn<Word, String> translateColumn;
 
     // Table with list of books
     public TableView booksListTableView;
@@ -68,11 +69,12 @@ public class MainPageController implements Initializable {
     private ExportHelper exportHelper;
     // Helper class providing methods that allow translate words using translate API
     private TranslateHelper translateHelper;
-
-    private String localLanguage = System.getProperty("user.language").toLowerCase();
+    // Variable that stores local user language.
+    private String localLanguage;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        // Setup WORDS table
         wordColumn = new TableColumn<Word, String>("Word");
         wordColumn.setCellValueFactory(new PropertyValueFactory<>("word"));
         wordColumn.setMinWidth(150);
@@ -83,9 +85,21 @@ public class MainPageController implements Initializable {
         countColumn.setCellValueFactory(new PropertyValueFactory<>("count"));
         countColumn.setMinWidth(50);
 
+        translateColumn = new TableColumn<>("Translation");
+        translateColumn.setCellValueFactory(new PropertyValueFactory<>("translationValue"));
+        translateColumn.setMinWidth(300);
+        setupTranslateColumn();
+
+        TableColumn<String, Word> partOfSpeechColumn = new TableColumn<>("Part of speech");
+        partOfSpeechColumn.setCellValueFactory(new PropertyValueFactory<>("partOfSpeech"));
+        partOfSpeechColumn.setMinWidth(150);
+
         wordsListTableView.getColumns().add(wordColumn);
         wordsListTableView.getColumns().add(countColumn);
+        wordsListTableView.getColumns().add(translateColumn);
+        wordsListTableView.getColumns().add(partOfSpeechColumn);
 
+        // Setup BOOKS table
         TableColumn<String, Book> titleColumn = new TableColumn<>("Title");
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         titleColumn.setMinWidth(150);
@@ -96,6 +110,7 @@ public class MainPageController implements Initializable {
         booksListTableView.getColumns().add(titleColumn);
         booksListTableView.getColumns().add(checkedWordsColumn);
 
+        // Setup HISTORY table
         TableColumn<String, LookUp> lookUpsColumn1 = new TableColumn<>("Word");
         lookUpsColumn1.setCellValueFactory(new PropertyValueFactory<>("word"));
         lookUpsColumn1.setMinWidth(150);
@@ -118,9 +133,11 @@ public class MainPageController implements Initializable {
         lookUpsListTableView.getColumns().add(lookUpsColumn2);
         lookUpsListTableView.getColumns().add(lookUpsColumn3);
         lookUpsListTableView.getColumns().add(lookUpsColumn4);
-
+        // Create helper instance
         exportHelper = new ExportHelper();
         translateHelper = new TranslateHelper();
+        // Get local user language
+        localLanguage = System.getProperty("user.language").toLowerCase();
     }
     // Action called when user want to open new file
     public void openFileAction(ActionEvent actionEvent) {
@@ -196,7 +213,6 @@ public class MainPageController implements Initializable {
         File file = fileChooser.showSaveDialog(primaryStage);
 
         if (file != null) {
-            translateWords();
             exportHelper.exportToCSV(wordsObservableList, file);
         }
     }
@@ -226,18 +242,17 @@ public class MainPageController implements Initializable {
         }
         Platform.exit();
     }
-
-    public void removeSelectedWords(ActionEvent actionEvent) {
-    }
-
+    // Action called after user request to remove specified lookups.
     public void removeSelectedLookUps(ActionEvent actionEvent) {
+        if (lookUpsObservableList == null || lookUpsObservableList.size() == 0)
+            return;
         for (LookUp l : lookUpsObservableList) {
             if (l.isDelete())
                 sqlHelper.removeLookUp(l.id);
         }
         lookUpsObservableList.removeIf(w -> w.isDelete());
     }
-
+    // Action that opens cleanUp window where user can personalize and start clean-up operation.
     public void openCleanUpWindow(ActionEvent actionEvent) {
         if(sqlHelper == null)
             return;
@@ -267,51 +282,25 @@ public class MainPageController implements Initializable {
             e.printStackTrace();
         }
     }
-
+    // Action makes API call to translator and updates all words in wordsList according to received value.
     public void translateWords() {
-        wordsObservableList.forEach(word -> {
+        if (wordsObservableList == null || wordsObservableList.size() == 0)
+            return;
+
+        for (var word: wordsObservableList) {
             try {
                 translateHelper.translate(word,localLanguage);
             } catch (IOException e) {
                 showAlertTranslateFailure();
                 return;
             }
-        });
+        }
+
+        showAlertTranslateSuccess();
     }
 
 
-
-    private void refreshStats() {
-        // Create new charts
-        PieChart bookPieChart = createBooksChart();
-        BarChart wordBarChart = createWordsChart();
-        ScatterChart lookUpsScatterChart = createLookUpsChart();
-
-        // Remove existing charts from view
-        statsVBox.getChildren().clear();
-
-        // Create label for each chart
-        Label l1 = new Label("Frequently checked words");
-        Label l2 = new Label("Most popular books");
-        Label l3 = new Label("Words checked history");
-
-        // Setting properties of each label
-        l1.setFont(new Font(20));
-        l1.setPadding(new Insets(30, 0, 2, 0));
-        l2.setFont(new Font(20));
-        l2.setPadding(new Insets(30, 0, 2, 0));
-        l3.setFont(new Font(20));
-        l3.setPadding(new Insets(30, 0, 2, 0));
-
-        // Add created elements to view
-        statsVBox.getChildren().add(l1);
-        statsVBox.getChildren().add(wordBarChart);
-        statsVBox.getChildren().add(l2);
-        statsVBox.getChildren().add(bookPieChart);
-        statsVBox.getChildren().add(l3);
-        statsVBox.getChildren().add(lookUpsScatterChart);
-    }
-
+    // Makes WordTable cells editable for user.
     private void setWordsListTableEditable() {
         wordsListTableView.setEditable(true);
         // allows the individual cells to be selected
@@ -331,12 +320,29 @@ public class MainPageController implements Initializable {
             }
         });
     }
-
+    // Helper method used in setWordsListTableEditable() calls.
     private void editFocusedCell() {
         final TablePosition<Word, ?> focusedCell = wordsListTableView.getEditingCell();
         wordsListTableView.edit(focusedCell.getRow(), focusedCell.getTableColumn());
     }
+    // Method that setups behaviour of single cell after editing.
+    private void setupTranslateColumn() {
 
+        translateColumn.setCellFactory(EditCell.forTableColumn());
+
+        translateColumn.setOnEditCommit(event -> {
+            // Get new value
+            final String value = event.getNewValue() != null
+                    ? event.getNewValue() : event.getOldValue();
+            // Get Word instance corresponding to selected row
+            Word w = event.getTableView().getItems()
+                    .get(event.getTablePosition().getRow());
+            // Update value
+            w.setTranslationValue(value);
+            wordsListTableView.refresh();
+        });
+    }
+    // Method that setups behaviour of single cell after editing.
     private void setupWordColumn() {
 
         wordColumn.setCellFactory(EditCell.forTableColumn());
@@ -350,15 +356,11 @@ public class MainPageController implements Initializable {
                     .get(event.getTablePosition().getRow());
             // Update value
             w.setWord(value);
-            // TODO: Remove debug messages
-            System.out.println(value);
-            // TODO: Include in update method
-            sqlHelper.hasUnsavedChanges = true;
-
+            sqlHelper.updateWord(w.id,value);
             wordsListTableView.refresh();
         });
     }
-
+    // Creates scatter chart based on data generated using current instance of statsHelper.
     private ScatterChart createLookUpsChart() {
         // Get data to display from stats helpers
         var lookUps = statsHelper.getLookUpTimeLine(8, lookUpsObservableList);
@@ -392,7 +394,7 @@ public class MainPageController implements Initializable {
 
         return scatterChart;
     }
-
+    // Creates pie chart based on data generated by using instance of statsHelper.
     private PieChart createBooksChart() {
         // Get data to display from stats helpers
         var books = statsHelper.getTopBooks(3, booksObservableList);
@@ -406,7 +408,7 @@ public class MainPageController implements Initializable {
 
         return bookPieChart;
     }
-
+    // Creates bar chart based on data generated by using instance of statsHelper.
     private BarChart createWordsChart() {
         // Create axis for BarChart
         CategoryAxis xAxis = new CategoryAxis();
@@ -434,7 +436,7 @@ public class MainPageController implements Initializable {
 
         return wordBarChart;
     }
-
+    // Creates checkbox menu items with available languages.
     private void createLanguageMenuItems(List<String> languages) {
         // Remove existing elements
         languageMenu.getItems().clear();
@@ -459,7 +461,7 @@ public class MainPageController implements Initializable {
             languageMenu.getItems().add(menuitem);
         }
     }
-
+    // Updates view with modified data from current sqlHelper instance.
     private void refreshAllView() {
         statsHelper = new StatsHelper();
         // Get updated data from database
@@ -473,7 +475,38 @@ public class MainPageController implements Initializable {
         // Refresh statistics for just updated data
         refreshStats();
     }
+    // Updates all charts displayed in view.
+    private void refreshStats() {
+        // Create new charts
+        PieChart bookPieChart = createBooksChart();
+        BarChart wordBarChart = createWordsChart();
+        ScatterChart lookUpsScatterChart = createLookUpsChart();
 
+        // Remove existing charts from view
+        statsVBox.getChildren().clear();
+
+        // Create label for each chart
+        Label l1 = new Label("Frequently checked words");
+        Label l2 = new Label("Most popular books");
+        Label l3 = new Label("Words checked history");
+
+        // Setting properties of each label
+        l1.setFont(new Font(20));
+        l1.setPadding(new Insets(30, 0, 2, 0));
+        l2.setFont(new Font(20));
+        l2.setPadding(new Insets(30, 0, 2, 0));
+        l3.setFont(new Font(20));
+        l3.setPadding(new Insets(30, 0, 2, 0));
+
+        // Add created elements to view
+        statsVBox.getChildren().add(l1);
+        statsVBox.getChildren().add(wordBarChart);
+        statsVBox.getChildren().add(l2);
+        statsVBox.getChildren().add(bookPieChart);
+        statsVBox.getChildren().add(l3);
+        statsVBox.getChildren().add(lookUpsScatterChart);
+    }
+    // Shows custom alert pop-up after successful API call.
     private void showAlertTranslateSuccess() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Success!");
@@ -482,7 +515,7 @@ public class MainPageController implements Initializable {
         alert.getButtonTypes().setAll(okButton);
         alert.showAndWait();
     }
-
+    // Shows custom alert pop-up after filed attempt to connect to translate API.
     private void showAlertTranslateFailure() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error occurred!");

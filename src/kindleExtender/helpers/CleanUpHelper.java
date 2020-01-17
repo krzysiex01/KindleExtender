@@ -1,12 +1,8 @@
 package kindleExtender.helpers;
 
-import javafx.collections.ObservableList;
 import kindleExtender.models.Word;
-
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class CleanUpHelper {
     public SQLHelper sqlHelper;

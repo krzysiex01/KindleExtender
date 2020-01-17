@@ -1,10 +1,6 @@
 package kindleExtender.helpers;
 
-import com.google.gson.JsonObject;
 import com.squareup.okhttp.*;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import kindleExtender.models.Word;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,7 +16,7 @@ public class TranslateHelper {
         String url = endpoint + "&from=" + word.getLanguage() + "&to=" + to;
         String response = null;
 
-        response = post(url, word.getWord());
+        response = post(url, word.getStem());
         parseResponse(response, word);
         word.setTranslationTo(to);
     }
@@ -51,22 +47,21 @@ public class TranslateHelper {
 
     private void parseResponse(String json_text, Word word) {
         String translateValue = "";
-        System.out.println(json_text);
         JSONArray responseArray = new JSONArray(json_text);
         JSONObject responseObject = responseArray.getJSONObject(0);
         JSONArray translations = responseObject.getJSONArray("translations");
 
-        if (translations.length() == 0)
+        if (translations.length() == 0) {
+            word.setTranslationValue("-");
             return;
+        }
 
         for (int i = 0; i < translations.length() && i < 4; i++) {
             double confidence = translations.getJSONObject(i).getDouble("confidence");
-            if (confidence < 0.1)
-                continue;
 
-            translateValue += translations.getJSONObject(i).getString("displayTarget") + ", ";
+            translateValue += translations.getJSONObject(i).getString("displayTarget").toLowerCase() + ", ";
         }
-
+        translateValue = translateValue.substring(0,translateValue.length() - 2);
         word.setPartOfSpeech(translations.getJSONObject(0).getString("posTag"));
         word.setTranslationValue(translateValue);
     }

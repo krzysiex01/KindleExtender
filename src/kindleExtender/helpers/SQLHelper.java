@@ -11,7 +11,6 @@ import java.sql.*;
 import java.util.*;
 
 public class SQLHelper {
-
     public SQLHelper(String fileURL) {
         this.fileURL = fileURL;
         _conn = connect(fileURL);
@@ -23,10 +22,8 @@ public class SQLHelper {
         hasUnsavedChanges = false;
         currentLanguageFilters = getListOfLanguages();
     }
-
     // Indicates if any (uncomitted) changes to database have been made
     public boolean hasUnsavedChanges;
-
     // Contains list of currently applied Language filters, stored as language codes
     private List<String> currentLanguageFilters;
     // URL to currently open database file
@@ -34,58 +31,7 @@ public class SQLHelper {
     // Stores connection to currently open database
     private Connection _conn;
 
-    private static Connection connect(String fileURL) {
-        String url = "jdbc:sqlite:" + fileURL;
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(url);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return conn;
-    }
-
-    private String getCurrentFilters() {
-        StringBuilder result = new StringBuilder();
-        for (var langCode: currentLanguageFilters){
-            result.append("lang=").append("\'").append(langCode).append("\'").append(" OR ");
-        }
-        if (result.length() == 0)
-            result.append("lang=").append("empty").append(" OR ");
-
-        return result.substring(0,result.length()-4);
-    }
-
-    private String getCurrentFiltersWithColumnName() {
-        StringBuilder result = new StringBuilder();
-        for (var langCode: currentLanguageFilters){
-            result.append("WORDS.lang=").append("\'").append(langCode).append("\'").append(" OR ");
-        }
-        if (result.length() == 0)
-            result.append("lang=").append("empty").append(" OR ");
-
-        return result.substring(0,result.length()-4);
-    }
-
-    private List<String> getListOfLanguages() {
-        String sql = "SELECT DISTINCT lang FROM WORDS";
-        List<String> langList = new ArrayList<>();
-
-        try {
-            Statement stmt = _conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-
-            // loop through the result set
-            while (rs.next()) {
-                langList.add(rs.getString("lang"));
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
-        return langList;
-    }
-
+    // Gets all words from currently connected database
     public List<Word> getWords() {
         String sql = "SELECT * FROM WORDS WHERE " + getCurrentFilters();
         List<Word> wordList = new ArrayList<Word>();
@@ -104,7 +50,7 @@ public class SQLHelper {
 
         return wordList;
     }
-
+    // Gets single word with specified key (id)
     public Word getWord(String id) {
         String sql = "SELECT * FROM WORDS WHERE id='" + id + "'";
         try {
@@ -116,7 +62,7 @@ public class SQLHelper {
             return null;
         }
     }
-
+    // Gets all books from currently connected database
     public List<Book> getBooks() {
         String sql = "SELECT * FROM BOOK_INFO WHERE " + getCurrentFilters();
         List<Book> bookList = new ArrayList<Book>();
@@ -135,7 +81,7 @@ public class SQLHelper {
 
         return bookList;
     }
-
+    // Gets single book with specified key (id)
     public Book getBook(String id) {
         String sql = "SELECT * FROM BOOK_INFO WHERE id='" + id + "'";
 
@@ -149,7 +95,7 @@ public class SQLHelper {
             return null;
         }
     }
-
+    // Gets all lookUps from currently connected database
     public List<LookUp> getLookUps() {
         String sql = "SELECT * FROM LOOKUPS INNER JOIN WORDS ON LOOKUPS.word_key = WORDS.id INNER JOIN BOOK_INFO ON LOOKUPS.book_key=BOOK_INFO.id WHERE " + getCurrentFiltersWithColumnName();
         List<LookUp> lookUpList = new ArrayList<>();
@@ -168,35 +114,7 @@ public class SQLHelper {
 
         return lookUpList;
     }
-
-    private int getLookUpsCountOnWordKey(String wordKey) {
-        String sql = "SELECT COUNT(*) AS total FROM LOOKUPS WHERE word_key = '" + wordKey + "'";
-
-        try {
-            Statement stmt = _conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-            rs.next();
-            return rs.getInt("total");
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return 0;
-        }
-    }
-
-    private int getLookUpsCountOnBookKey(String bookKey) {
-        String sql = "SELECT COUNT(*) AS total FROM LOOKUPS WHERE book_key = '" + bookKey + "'";
-
-        try {
-            Statement stmt = _conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-            rs.next();
-            return rs.getInt("total");
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return 0;
-        }
-    }
-
+    // Removes single record from WORD table with specified wordKey
     public void removeWord(String wordKey) {
         String sql = "DELETE FROM WORDS WHERE id = ?";
         try {
@@ -208,7 +126,7 @@ public class SQLHelper {
             System.out.println(e.getMessage());
         }
     }
-
+    // Removes single record from LOOKUPS table with specified lookUpKey
     public void removeLookUp(String lookUpKey){
         String sql = "DELETE FROM LOOKUPS WHERE id = ?";
         try {
@@ -220,7 +138,7 @@ public class SQLHelper {
             System.out.println(e.getMessage());
         }
     }
-
+    // Updates word with specified wordKey with given newValue
     public void updateWord(String wordKey, String newValue) {
         String sql = "UPDATE WORDS SET word = ?"
                 + "WHERE id = ?";
@@ -234,7 +152,6 @@ public class SQLHelper {
             System.out.println(e.getMessage());
         }
     }
-
     // Merges two words by removing one of them (wordKey2) and setting new value for second one (for wordKey1)
     public void mergeWords(String wordKey1, String wordKey2, String newValue) {
         // Update LOOKUPS table
@@ -255,7 +172,7 @@ public class SQLHelper {
         // Remove unused foreign key in words table
         removeWord(wordKey2);
     }
-
+    // Commits transaction
     public void commit() {
         try {
             _conn.commit();
@@ -265,7 +182,7 @@ public class SQLHelper {
 
         }
     }
-
+    // Rollback transaction
     public void rollback() {
         try {
             _conn.rollback();
@@ -275,7 +192,7 @@ public class SQLHelper {
 
         }
     }
-
+    // Close connection to database
     public void close() {
         try {
             if (_conn != null) {
@@ -285,7 +202,7 @@ public class SQLHelper {
             System.out.println(ex.getMessage());
         }
     }
-
+    // Export currently connected database to file with given fullPath
     public void exportDatabase(String fullPath) {
         // Copy template database from app resources
         try {
@@ -340,17 +257,98 @@ public class SQLHelper {
             System.out.println(e.getMessage());
         }
     }
-
+    // Add new language code to current filter list
     public void addLanguage(String code) {
         if (!currentLanguageFilters.contains(code))
             currentLanguageFilters.add(code);
     }
-
+    // Remove specified code from language filter list
     public void removeLanguage(String code) {
         currentLanguageFilters.remove(code);
     }
-
+    // Gets list with all language codes filters currently applied
     public List<String> getCurrentLanguageFilters() {
         return currentLanguageFilters;
+    }
+
+
+    private int getLookUpsCountOnWordKey(String wordKey) {
+        String sql = "SELECT COUNT(*) AS total FROM LOOKUPS WHERE word_key = '" + wordKey + "'";
+
+        try {
+            Statement stmt = _conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            return rs.getInt("total");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return 0;
+        }
+    }
+
+    private int getLookUpsCountOnBookKey(String bookKey) {
+        String sql = "SELECT COUNT(*) AS total FROM LOOKUPS WHERE book_key = '" + bookKey + "'";
+
+        try {
+            Statement stmt = _conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            return rs.getInt("total");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return 0;
+        }
+    }
+
+    private static Connection connect(String fileURL) {
+        String url = "jdbc:sqlite:" + fileURL;
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return conn;
+    }
+
+    private String getCurrentFilters() {
+        StringBuilder result = new StringBuilder();
+        for (var langCode: currentLanguageFilters){
+            result.append("lang=").append("\'").append(langCode).append("\'").append(" OR ");
+        }
+        if (result.length() == 0)
+            result.append("lang=").append("empty").append(" OR ");
+
+        return result.substring(0,result.length()-4);
+    }
+
+    private String getCurrentFiltersWithColumnName() {
+        StringBuilder result = new StringBuilder();
+        for (var langCode: currentLanguageFilters){
+            result.append("WORDS.lang=").append("\'").append(langCode).append("\'").append(" OR ");
+        }
+        if (result.length() == 0)
+            result.append("lang=").append("empty").append(" OR ");
+
+        return result.substring(0,result.length()-4);
+    }
+
+    private List<String> getListOfLanguages() {
+        String sql = "SELECT DISTINCT lang FROM WORDS";
+        List<String> langList = new ArrayList<>();
+
+        try {
+            Statement stmt = _conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            // loop through the result set
+            while (rs.next()) {
+                langList.add(rs.getString("lang"));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return langList;
     }
 }

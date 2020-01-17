@@ -23,12 +23,9 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
         Platform.setImplicitExit(false);
-        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                mainPageController.exitAction(new ActionEvent());
-                event.consume();
-            }
+        primaryStage.setOnCloseRequest(event -> {
+            mainPageController.exitAction(new ActionEvent());
+            event.consume();
         });
     }
 

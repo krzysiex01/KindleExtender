@@ -34,7 +34,7 @@ public class SQLHelper {
     // Gets all words from currently connected database
     public List<Word> getWords() {
         String sql = "SELECT * FROM WORDS WHERE " + getCurrentFilters();
-        List<Word> wordList = new ArrayList<Word>();
+        List<Word> wordList = new ArrayList<>();
 
         try {
             Statement stmt = _conn.createStatement();
@@ -65,7 +65,7 @@ public class SQLHelper {
     // Gets all books from currently connected database
     public List<Book> getBooks() {
         String sql = "SELECT * FROM BOOK_INFO WHERE " + getCurrentFilters();
-        List<Book> bookList = new ArrayList<Book>();
+        List<Book> bookList = new ArrayList<>();
 
         try {
             Statement stmt = _conn.createStatement();

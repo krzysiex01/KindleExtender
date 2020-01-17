@@ -1,6 +1,5 @@
 package kindleExtender;
 
-import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.stage.Stage;

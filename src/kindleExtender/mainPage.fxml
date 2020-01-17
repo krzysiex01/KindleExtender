@@ -48,13 +48,12 @@
             </Menu>
             <Menu text="Languages" fx:id="languageMenu">
                 <items>
-                    <MenuItem disable="true" text="None"></MenuItem>
+                    <MenuItem disable="true" text="None"/>
                 </items>
             </Menu>
             <Menu text="Translation">
                 <items>
-                    <MenuItem text="Translate all" onAction="#translateWords"></MenuItem>
-                    <SeparatorMenuItem></SeparatorMenuItem>
+                    <MenuItem text="Translate all" onAction="#translateWords"/>
                 </items>
             </Menu>
             <Menu text="Help">

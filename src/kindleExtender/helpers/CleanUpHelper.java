@@ -15,11 +15,9 @@ public class CleanUpHelper {
     public int removeNonAlphabeticCharacters(){
         int editedWordsCount = 0;
         var wordsObservableList = sqlHelper.getWords();
-        for (int i = 0; i < wordsObservableList.size(); i++) {
-            var word = wordsObservableList.get(i);
-            for (int j = 0 ; j < word.getWord().length(); j++)
-            {
-              if(!Character.isLetterOrDigit(word.getWord().charAt(j))) {
+        for (Word word : wordsObservableList) {
+            for (int j = 0; j < word.getWord().length(); j++) {
+                if (!Character.isLetterOrDigit(word.getWord().charAt(j))) {
                     String editedWord = word.getWord().replaceAll("[^a-zA-Z0-9\\-]", "");
                     editedWord = editedWord.toLowerCase();
                     // Update word in database
@@ -36,9 +34,9 @@ public class CleanUpHelper {
     public int removeInconsistentData() {
         var wordsObservableList = sqlHelper.getWords();
         int removedWordsCount = 0;
-        for (int i = 0; i < wordsObservableList.size(); i++) {
-            if (wordsObservableList.get(i).getCount() == 0) {
-                sqlHelper.removeWord(wordsObservableList.get(i).id);
+        for (Word word : wordsObservableList) {
+            if (word.getCount() == 0) {
+                sqlHelper.removeWord(word.id);
                 removedWordsCount++;
             }
         }

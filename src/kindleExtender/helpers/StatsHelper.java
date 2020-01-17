@@ -1,6 +1,5 @@
 package kindleExtender.helpers;
 
-import javafx.collections.ObservableList;
 import javafx.scene.chart.XYChart;
 import kindleExtender.models.Book;
 import kindleExtender.models.LookUp;
@@ -54,7 +53,7 @@ public class StatsHelper {
             while (it.hasNext() && it.next().getTimestamp() < tmpMax){
                 count++;
             }
-            result.add(new XYChart.Data<Long,Integer>((tmpMax - intervalValue / 2), count));
+            result.add(new XYChart.Data<>((tmpMax - intervalValue / 2), count));
             tmpMax += intervalValue;
             count = 0;
         }

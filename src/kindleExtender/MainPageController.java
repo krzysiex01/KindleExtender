@@ -75,7 +75,7 @@ public class MainPageController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Setup WORDS table
-        wordColumn = new TableColumn<Word, String>("Word");
+        wordColumn = new TableColumn<>("Word");
         wordColumn.setCellValueFactory(new PropertyValueFactory<>("word"));
         wordColumn.setMinWidth(150);
         setupWordColumn(); // allows editing specified columns
@@ -124,8 +124,8 @@ public class MainPageController implements Initializable {
         lookUpsColumn3.setMinWidth(250);
 
         TableColumn<Boolean, LookUp> lookUpsColumn4 = new TableColumn<>("Delete");
-        lookUpsColumn4.setCellValueFactory(new PropertyValueFactory<Boolean, LookUp>("delete"));
-        lookUpsColumn4.setCellFactory(tc -> new CheckBoxTableCell<Boolean, LookUp>());
+        lookUpsColumn4.setCellValueFactory(new PropertyValueFactory<>("delete"));
+        lookUpsColumn4.setCellFactory(tc -> new CheckBoxTableCell<>());
 
         lookUpsListTableView.setEditable(true);
 
@@ -368,7 +368,7 @@ public class MainPageController implements Initializable {
         NumberAxis xAxis = new NumberAxis();
         xAxis.setLabel("Time");
         xAxis.setForceZeroInRange(false);
-        xAxis.setTickLabelFormatter(new StringConverter<Number>() {
+        xAxis.setTickLabelFormatter(new StringConverter<>() {
             DateFormat dateFormat = new SimpleDateFormat("MM/yyyy");
 
             @Override

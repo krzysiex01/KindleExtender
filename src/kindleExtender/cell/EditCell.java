@@ -30,7 +30,7 @@ public class EditCell<S, T> extends TextFieldTableCell<S, T> {
 
     public static <S, T> Callback<TableColumn<S, T>, TableCell<S, T>> forTableColumn(
             final StringConverter<T> converter) {
-        return list -> new EditCell<S, T>(converter);
+        return list -> new EditCell<>(converter);
     }
 
     @Override
@@ -109,13 +109,7 @@ public class EditCell<S, T> extends TextFieldTableCell<S, T> {
 
         final TextField textField = new TextField(getItemText());
 
-        textField.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("hi");
-            }
-        });
+        textField.setOnAction(event -> System.out.println("hi"));
 
         // Use onAction here rather than onKeyReleased (with check for Enter),
         textField.setOnAction(event -> {
@@ -126,13 +120,9 @@ public class EditCell<S, T> extends TextFieldTableCell<S, T> {
             event.consume();
         });
 
-        textField.focusedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable,
-                                Boolean oldValue, Boolean newValue) {
-                if (!newValue) {
-                    commitEdit(getConverter().fromString(textField.getText()));
-                }
+        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) {
+                commitEdit(getConverter().fromString(textField.getText()));
             }
         });
 

@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 public class TranslateHelper {
     private static String subscriptionKey = System.getenv("TRANSLATOR_TEXT_SUBSCRIPTION_KEY");
@@ -23,7 +24,7 @@ public class TranslateHelper {
 
     public void translate(List<Word> words, String to) throws IOException {
         for (var word:words) {
-            if (word.getLanguage() == to)
+            if (Objects.equals(word.getLanguage(), to))
                 continue;
             translate(word, to);
         }

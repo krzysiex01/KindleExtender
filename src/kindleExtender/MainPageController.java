@@ -22,6 +22,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,9 +31,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import kindleExtender.cell.EditCell;
-import kindleExtender.helpers.CleanUpHelper;
-import kindleExtender.helpers.SQLHelper;
-import kindleExtender.helpers.StatsHelper;
+import kindleExtender.helpers.*;
 import kindleExtender.models.Book;
 import kindleExtender.models.LookUp;
 import kindleExtender.models.Word;
@@ -65,32 +64,63 @@ public class MainPageController implements Initializable {
     private StatsHelper statsHelper;
     // Helper class providing methods to maintain consistency of data and improving readability of entries
     private CleanUpHelper cleanUpHelper;
+    // Helper class providing methods to export collected data to various formats
+    private ExportHelper exportHelper;
+    // Helper class providing methods that allow translate words using translate API
+    private TranslateHelper translateHelper;
 
-    // Action called on application exit
-    public void exitAction(ActionEvent actionEvent) {
-        if (sqlHelper != null) {
-            if (sqlHelper.hasUnsavedChanges) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("Current file is modified");
-                alert.setContentText("Save?");
-                ButtonType okButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
-                ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
-                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-                alert.getButtonTypes().setAll(okButton, noButton, cancelButton);
-                var type = alert.showAndWait();
-                if (type.isEmpty())
-                    return;
-                if (type.get().getButtonData() == ButtonBar.ButtonData.YES) {
-                    sqlHelper.commit();
-                } else if (type.get().getButtonData() == ButtonBar.ButtonData.NO) {
-                    sqlHelper.rollback();
-                } else {
-                    return;
-                }
-            }
-            sqlHelper.close();
-        }
-        Platform.exit();
+    private String localLanguage = System.getProperty("user.language").toLowerCase();
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        wordColumn = new TableColumn<Word, String>("Word");
+        wordColumn.setCellValueFactory(new PropertyValueFactory<>("word"));
+        wordColumn.setMinWidth(150);
+        setupWordColumn(); // allows editing specified columns
+        setWordsListTableEditable(); // make word table editable
+
+        TableColumn<String, Word> countColumn = new TableColumn<>("Count");
+        countColumn.setCellValueFactory(new PropertyValueFactory<>("count"));
+        countColumn.setMinWidth(50);
+
+        wordsListTableView.getColumns().add(wordColumn);
+        wordsListTableView.getColumns().add(countColumn);
+
+        TableColumn<String, Book> titleColumn = new TableColumn<>("Title");
+        titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
+        titleColumn.setMinWidth(150);
+        TableColumn<String, Book> checkedWordsColumn = new TableColumn<>("Checked words");
+        checkedWordsColumn.setCellValueFactory(new PropertyValueFactory<>("wordCount"));
+        checkedWordsColumn.setMinWidth(150);
+
+        booksListTableView.getColumns().add(titleColumn);
+        booksListTableView.getColumns().add(checkedWordsColumn);
+
+        TableColumn<String, LookUp> lookUpsColumn1 = new TableColumn<>("Word");
+        lookUpsColumn1.setCellValueFactory(new PropertyValueFactory<>("word"));
+        lookUpsColumn1.setMinWidth(150);
+
+        TableColumn<String, LookUp> lookUpsColumn2 = new TableColumn<>("Usage");
+        lookUpsColumn2.setCellValueFactory(new PropertyValueFactory<>("usage"));
+        lookUpsColumn2.setMinWidth(300);
+
+        TableColumn<String, LookUp> lookUpsColumn3 = new TableColumn<>("Book");
+        lookUpsColumn3.setCellValueFactory(new PropertyValueFactory<>("book"));
+        lookUpsColumn3.setMinWidth(250);
+
+        TableColumn<Boolean, LookUp> lookUpsColumn4 = new TableColumn<>("Delete");
+        lookUpsColumn4.setCellValueFactory(new PropertyValueFactory<Boolean, LookUp>("delete"));
+        lookUpsColumn4.setCellFactory(tc -> new CheckBoxTableCell<Boolean, LookUp>());
+
+        lookUpsListTableView.setEditable(true);
+
+        lookUpsListTableView.getColumns().add(lookUpsColumn1);
+        lookUpsListTableView.getColumns().add(lookUpsColumn2);
+        lookUpsListTableView.getColumns().add(lookUpsColumn3);
+        lookUpsListTableView.getColumns().add(lookUpsColumn4);
+
+        exportHelper = new ExportHelper();
+        translateHelper = new TranslateHelper();
     }
     // Action called when user want to open new file
     public void openFileAction(ActionEvent actionEvent) {
@@ -126,13 +156,13 @@ public class MainPageController implements Initializable {
             refreshStats();
         }
     }
-
+    // Action saves all changes to currently opened file
     public void saveAction(ActionEvent actionEvent) {
         if (sqlHelper != null && sqlHelper.hasUnsavedChanges) {
             sqlHelper.commit();
         }
     }
-
+    // Action creates new database file and saves to user specified location.
     public void saveAsAction(ActionEvent actionEvent) {
         if (sqlHelper == null)
             return;
@@ -151,9 +181,50 @@ public class MainPageController implements Initializable {
             sqlHelper.exportDatabase(file.getAbsolutePath());
         }
     }
-
+    // Action exports data from currently open file to CSV file.
     public void exportToCSVAction(ActionEvent actionEvent) {
-        // TODO: exportToCSVAction
+        if (wordsObservableList == null)
+            return;
+
+        FileChooser fileChooser = new FileChooser();
+
+        //Set extension filter
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(" (*.csv)", "*.csv");
+        fileChooser.getExtensionFilters().add(extFilter);
+
+        //Show save file dialog
+        File file = fileChooser.showSaveDialog(primaryStage);
+
+        if (file != null) {
+            translateWords();
+            exportHelper.exportToCSV(wordsObservableList, file);
+        }
+    }
+    // Action called on application exit
+    public void exitAction(ActionEvent actionEvent) {
+        if (sqlHelper != null) {
+            if (sqlHelper.hasUnsavedChanges) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Current file is modified");
+                alert.setContentText("Save?");
+                ButtonType okButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+                ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                alert.getButtonTypes().setAll(okButton, noButton, cancelButton);
+                var type = alert.showAndWait();
+                if (type.isEmpty())
+                    return;
+                if (type.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                    sqlHelper.commit();
+                } else if (type.get().getButtonData() == ButtonBar.ButtonData.NO) {
+                    sqlHelper.rollback();
+                } else {
+                    return;
+                }
+            }
+            sqlHelper.close();
+        }
+        Platform.exit();
     }
 
     public void removeSelectedWords(ActionEvent actionEvent) {
@@ -173,7 +244,7 @@ public class MainPageController implements Initializable {
 
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("cleanUpPage.fxml"));
-            Parent root1 = (Parent) fxmlLoader.load();
+            Parent root1 = fxmlLoader.load();
             // New window (Stage)
             Stage newWindow = new Stage();
             newWindow.setResizable(false);
@@ -186,7 +257,7 @@ public class MainPageController implements Initializable {
             // Set position of second window, related to primary window.
             newWindow.setX(primaryStage.getX() + 200);
             newWindow.setY(primaryStage.getY() + 100);
-            CleanUpPageController cleanUpPageController = fxmlLoader.<CleanUpPageController>getController();
+            CleanUpPageController cleanUpPageController = fxmlLoader.getController();
             cleanUpPageController.setCleanUpHelper(cleanUpHelper);
             cleanUpPageController.setSQLHelper(sqlHelper);
             newWindow.showAndWait();
@@ -196,6 +267,19 @@ public class MainPageController implements Initializable {
             e.printStackTrace();
         }
     }
+
+    public void translateWords() {
+        wordsObservableList.forEach(word -> {
+            try {
+                translateHelper.translate(word,localLanguage);
+            } catch (IOException e) {
+                showAlertTranslateFailure();
+                return;
+            }
+        });
+    }
+
+
 
     private void refreshStats() {
         // Create new charts
@@ -262,7 +346,7 @@ public class MainPageController implements Initializable {
             final String value = event.getNewValue() != null
                     ? event.getNewValue() : event.getOldValue();
             // Get Word instance corresponding to selected row
-            Word w = (Word) event.getTableView().getItems()
+            Word w = event.getTableView().getItems()
                     .get(event.getTablePosition().getRow());
             // Update value
             w.setWord(value);
@@ -390,53 +474,21 @@ public class MainPageController implements Initializable {
         refreshStats();
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        wordColumn = new TableColumn<Word, String>("Word");
-        wordColumn.setCellValueFactory(new PropertyValueFactory<>("word"));
-        wordColumn.setMinWidth(150);
-        setupWordColumn(); // allows editing specified columns
-        setWordsListTableEditable(); // make word table editable
+    private void showAlertTranslateSuccess() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Success!");
+        alert.setContentText("Translated successfully.");
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+        alert.showAndWait();
+    }
 
-        TableColumn<String, Word> countColumn = new TableColumn<>("Count");
-        countColumn.setCellValueFactory(new PropertyValueFactory<>("count"));
-        countColumn.setMinWidth(50);
-
-        wordsListTableView.getColumns().add(wordColumn);
-        wordsListTableView.getColumns().add(countColumn);
-
-        TableColumn<String, Book> titleColumn = new TableColumn<>("Title");
-        titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-        titleColumn.setMinWidth(150);
-        TableColumn<String, Book> checkedWordsColumn = new TableColumn<>("Checked words");
-        checkedWordsColumn.setCellValueFactory(new PropertyValueFactory<>("wordCount"));
-        checkedWordsColumn.setMinWidth(150);
-
-        booksListTableView.getColumns().add(titleColumn);
-        booksListTableView.getColumns().add(checkedWordsColumn);
-
-        TableColumn<String, LookUp> lookUpsColumn1 = new TableColumn<>("Word");
-        lookUpsColumn1.setCellValueFactory(new PropertyValueFactory<>("word"));
-        lookUpsColumn1.setMinWidth(150);
-
-        TableColumn<String, LookUp> lookUpsColumn2 = new TableColumn<>("Usage");
-        lookUpsColumn2.setCellValueFactory(new PropertyValueFactory<>("usage"));
-        lookUpsColumn2.setMinWidth(300);
-
-        TableColumn<String, LookUp> lookUpsColumn3 = new TableColumn<>("Book");
-        lookUpsColumn3.setCellValueFactory(new PropertyValueFactory<>("book"));
-        lookUpsColumn3.setMinWidth(250);
-
-        TableColumn<Boolean, LookUp> lookUpsColumn4 = new TableColumn<>("Delete");
-        lookUpsColumn4.setCellValueFactory(new PropertyValueFactory<Boolean, LookUp>("delete"));
-        lookUpsColumn4.setCellFactory(tc -> new CheckBoxTableCell<Boolean, LookUp>());
-
-        lookUpsListTableView.setEditable(true);
-
-        lookUpsListTableView.getColumns().add(lookUpsColumn1);
-        lookUpsListTableView.getColumns().add(lookUpsColumn2);
-        lookUpsListTableView.getColumns().add(lookUpsColumn3);
-        lookUpsListTableView.getColumns().add(lookUpsColumn4);
-
+    private void showAlertTranslateFailure() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error occurred!");
+        alert.setContentText("Please check your internet connection.");
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+        alert.showAndWait();
     }
 }

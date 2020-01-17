@@ -29,7 +29,9 @@ public class SQLHelper {
 
     // Contains list of currently applied Language filters, stored as language codes
     private List<String> currentLanguageFilters;
+    // URL to currently open database file
     private String fileURL;
+    // Stores connection to currently open database
     private Connection _conn;
 
     private static Connection connect(String fileURL) {
@@ -233,7 +235,7 @@ public class SQLHelper {
         }
     }
 
-    // Merges two words by removing one of them (wordKey2) and setting new value (for wordKey1)
+    // Merges two words by removing one of them (wordKey2) and setting new value for second one (for wordKey1)
     public void mergeWords(String wordKey1, String wordKey2, String newValue) {
         // Update LOOKUPS table
         String sql = "UPDATE LOOKUPS SET wordKey = ? "
@@ -345,8 +347,7 @@ public class SQLHelper {
     }
 
     public void removeLanguage(String code) {
-        if (currentLanguageFilters.contains(code))
-            currentLanguageFilters.remove(code);
+        currentLanguageFilters.remove(code);
     }
 
     public List<String> getCurrentLanguageFilters() {

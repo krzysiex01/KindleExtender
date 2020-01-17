@@ -137,10 +137,7 @@ public class EditCell<S, T> extends TextFieldTableCell<S, T> {
         });
 
         textField.setOnKeyPressed(t -> {
-            if (t.getCode() == KeyCode.ESCAPE)
-                escapePressed = true;
-            else
-                escapePressed = false;
+            escapePressed = t.getCode() == KeyCode.ESCAPE;
         });
         textField.setOnKeyReleased(t -> {
             if (t.getCode() == KeyCode.ESCAPE) {

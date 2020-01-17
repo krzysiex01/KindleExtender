@@ -51,6 +51,16 @@
                     <MenuItem disable="true" text="None"></MenuItem>
                 </items>
             </Menu>
+            <Menu text="Translation">
+                <items>
+                    <MenuItem text="translate" onAction="#translateTest"></MenuItem>
+                    <RadioMenuItem text="Auto-lang detection"></RadioMenuItem>
+                    <SeparatorMenuItem></SeparatorMenuItem>
+                    <RadioMenuItem text="en"></RadioMenuItem>
+                    <RadioMenuItem text="es"></RadioMenuItem>
+                    <RadioMenuItem text="pl"></RadioMenuItem>
+                </items>
+            </Menu>
             <Menu text="Help">
                 <items>
                     <MenuItem text="About"/>
@@ -66,12 +76,10 @@
             </Tab>
             <Tab text="My books">
                 <TableView fx:id="booksListTableView">
-
                 </TableView>
             </Tab>
             <Tab text="History">
                 <TableView fx:id="lookUpsListTableView">
-
                 </TableView>
             </Tab>
             <Tab text="Stats">

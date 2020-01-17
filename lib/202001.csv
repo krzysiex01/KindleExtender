@@ -1,0 +1,9 @@
+﻿Provisioning Status
+Subscription ID,Subscription Name,Order Id,Description,Billing Date(Anniversary Date),Offer Name,Service Name,Subs Status,Subs Extra Status,Provisioning Status
+"""9cfea615-6893-4d42-88dc-0b52f4be5d29""","""Azure for Students""","""cfe1d6e6-caff-4ac5-ba8b-09387f334956""","""Azure for Students""",25,,"""Azure Service Component""",Enabled,None,Provisioned
+
+Statement
+Billing Period,Name,Type,Resource,Region,SKU,Unit,Consumed,Included,Billable,Within Commitment,Currency,Overage,Commitment Rate,Rate,Value
+
+Daily Usage
+Usage Date,Name,ResourceGuid,Type,Resource,Region,Unit,Consumed,Sub Region,Service,Component,Service Info 1,Service Info 2,Additional Info

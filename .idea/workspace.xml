@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="Language filtering added.">
+    <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="Save as option added.">
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/commons_csv_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/202001.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/commons-csv-1.7.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/gson-2.8.6.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/json-20190722.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/okhttp-2.7.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/okio-1.6.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/kindleExtender/helpers/ExportHelper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/kindleExtender/helpers/TranslateHelper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/resources/vocabTemplate.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/KindleExtender.iml" beforeDir="false" afterPath="$PROJECT_DIR$/KindleExtender.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/MainPageController.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/MainPageController.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/helpers/SQLHelper.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/helpers/SQLHelper.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/mainPage.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/mainPage.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/models/Word.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/models/Word.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/kindleExtender/MainPageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/MainPageController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/kindleExtender/cell/EditCell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/cell/EditCell.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/kindleExtender/helpers/SQLHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/helpers/SQLHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/kindleExtender/mainPage.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/mainPage.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/kindleExtender/models/Word.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/models/Word.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -62,8 +78,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="FxmlFile" />
-        <option value="Class" />
         <option value="Enum" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -77,11 +93,14 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectId" id="1UtCFC5yqkKbSOKAB7WCa2XWplT" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectReloadState">
     <option name="STATE" value="0" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="GoToFile.includeJavaFiles" value="false" />
@@ -89,13 +108,15 @@
     <property name="MemberChooser.showClasses" value="true" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="OverrideImplement.combined" value="false" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="dynamic.classpath" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/lib/okio-1.6.0.jar!/" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="recentsLimit" value="5" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="RecentsManager">
@@ -221,7 +242,14 @@
       <option name="project" value="LOCAL" />
       <updated>1578609440751</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Save as option added.">
+      <created>1578794573069</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1578794573069</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -242,10 +270,12 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="true" />
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <option name="INCLUDE_TEXT_INTO_SHELF" value="false" />
     <MESSAGE value="Displaying statistics implemented." />
     <MESSAGE value="Removing inconsistent data implemented." />
     <MESSAGE value="Language filtering added." />
-    <option name="LAST_COMMIT_MESSAGE" value="Language filtering added." />
+    <MESSAGE value="Save as option added." />
+    <option name="LAST_COMMIT_MESSAGE" value="Save as option added." />
   </component>
 </project>

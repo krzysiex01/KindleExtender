@@ -14,6 +14,34 @@ public class Word extends Record {
     private String stem;
     private int count;
 
+    private String translationValue;
+    private String translationTo;
+    private String partOfSpeech;
+
+    public String getPartOfSpeech() {
+        return partOfSpeech;
+    }
+
+    public void setPartOfSpeech(String partOfSpeech) {
+        this.partOfSpeech = partOfSpeech;
+    }
+
+    public String getTranslationValue() {
+        return translationValue;
+    }
+
+    public String getTranslationTo() {
+        return translationTo;
+    }
+
+    public void setTranslationTo(String translationTo) {
+        this.translationTo = translationTo;
+    }
+
+    public void setTranslationValue(String translationValue) {
+        this.translationValue = translationValue;
+    }
+
     public String getStem() {
         return stem;
     }

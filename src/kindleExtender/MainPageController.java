@@ -17,6 +17,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -24,6 +25,7 @@ import javafx.util.StringConverter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -150,7 +152,12 @@ public class MainPageController implements Initializable {
 
         if (selectedFile != null) {
             // Create new instance of SQLHelper for selected file
-            sqlHelper = new SQLHelper(selectedFile.getAbsolutePath());
+            try {
+                sqlHelper = new SQLHelper(selectedFile.getAbsolutePath());
+            } catch (SQLException e) {
+                sqlHelper = null;
+                return;
+            }
             // Create new instance of CleanUpHelper for selected file
             cleanUpHelper = new CleanUpHelper(sqlHelper);
             // Create new instance of StatsHelper for selected file
@@ -171,6 +178,49 @@ public class MainPageController implements Initializable {
 
             // Refresh statistics for just loaded data
             refreshStats();
+        }
+    }
+    // Action called when user want to edit data directly on plug-in device
+    public void connectToKindle(ActionEvent actionEvent) {
+        // Let user select device
+        DirectoryChooser dir = new DirectoryChooser();
+        var selectedDirectory = dir.showDialog(wordsListTableView.getScene().getWindow());
+        var path = selectedDirectory.getAbsolutePath();
+
+        File selectedFile = new File(path + "system\\vocabulary\\vocab.db");
+
+        if (selectedFile != null && selectedFile.exists()) {
+            // Create new instance of SQLHelper for selected file
+            try {
+                sqlHelper = new SQLHelper(selectedFile.getAbsolutePath());
+            } catch (SQLException e) {
+                showAlertConnectionFailure();
+                sqlHelper = null;
+                return;
+            }
+            // Create new instance of CleanUpHelper for selected file
+            cleanUpHelper = new CleanUpHelper(sqlHelper);
+            // Create new instance of StatsHelper for selected file
+            statsHelper = new StatsHelper();
+
+            // Creates menu items in languageMenu from language list created from opened file
+            createLanguageMenuItems(sqlHelper.getCurrentLanguageFilters());
+
+            // Get data from database
+            wordsObservableList = FXCollections.observableList(sqlHelper.getWords());
+            booksObservableList = FXCollections.observableList(sqlHelper.getBooks());
+            lookUpsObservableList = FXCollections.observableList(sqlHelper.getLookUps());
+
+            // Fill tables with data
+            wordsListTableView.setItems(wordsObservableList);
+            booksListTableView.setItems(booksObservableList);
+            lookUpsListTableView.setItems(lookUpsObservableList);
+
+            // Refresh statistics for just loaded data
+            refreshStats();
+            showAlertConnectionSuccess();
+        } else {
+            showAlertConnectionFailure();
         }
     }
     // Action saves all changes to currently opened file
@@ -242,6 +292,14 @@ public class MainPageController implements Initializable {
         }
         Platform.exit();
     }
+    // Action called after user request to select all lookups.
+    public void selectAllLookUps(ActionEvent actionEvent) {
+        if (lookUpsObservableList == null || lookUpsObservableList.size() == 0)
+            return;
+        for (var lookUp: lookUpsObservableList) {
+            lookUp.setDelete(true);
+        }
+    }
     // Action called after user request to remove specified lookups.
     public void removeSelectedLookUps(ActionEvent actionEvent) {
         if (lookUpsObservableList == null || lookUpsObservableList.size() == 0)
@@ -290,15 +348,13 @@ public class MainPageController implements Initializable {
         for (var word: wordsObservableList) {
             try {
                 translateHelper.translate(word,localLanguage);
-            } catch (IOException e) {
-                showAlertTranslateFailure();
+            } catch (Exception e) {
+                //showAlertTranslateFailure();
                 return;
             }
         }
-
-        showAlertTranslateSuccess();
+        //showAlertTranslateSuccess();
     }
-
 
     // Makes WordTable cells editable for user.
     private void setWordsListTableEditable() {
@@ -520,6 +576,25 @@ public class MainPageController implements Initializable {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error occurred!");
         alert.setContentText("Please check your internet connection.");
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+        alert.showAndWait();
+    }
+    // Shows custom alert pop-up after successful connection to a device.
+    private void showAlertConnectionSuccess() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Connected successfully!");
+        alert.setContentText("Remember that all changes will be saved directly on your device! \nSo before making any changes please create back-up copy using SAVE AS option.");
+        alert.setHeight(300);
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+        alert.showAndWait();
+    }
+    // Shows custom alert pop-up after failed connection to a device.
+    private void showAlertConnectionFailure() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Cannot recognize your KINDLE!");
+        alert.setContentText("Please make sure that you selected correct device. And try again.");
         ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(okButton);
         alert.showAndWait();

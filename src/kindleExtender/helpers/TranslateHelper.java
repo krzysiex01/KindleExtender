@@ -1,6 +1,7 @@
 package kindleExtender.helpers;
 
 import com.squareup.okhttp.*;
+import kindleExtender.TranslateCallbacks;
 import kindleExtender.models.Word;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,24 +14,32 @@ public class TranslateHelper {
     private static String subscriptionKey = System.getenv("TRANSLATOR_TEXT_SUBSCRIPTION_KEY");
     private static String endpoint = System.getenv("TRANSLATOR_TEXT_ENDPOINT");
 
-    public void translate(Word word, String to) throws IOException {
+    public void translate(Word word, String to) {
         String url = endpoint + "&from=" + word.getLanguage() + "&to=" + to;
-        String response = null;
 
-        response = post(url, word.getStem());
-        parseResponse(response, word);
-        word.setTranslationTo(to);
+        post(url, word.getStem(), new TranslateCallbacks() {
+            @Override
+            public void onSuccess(String value) {
+                parseResponse(value, word);
+                word.setTranslationTo(to);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                //throwable.printStackTrace();
+            }
+        });
     }
 
     public void translate(List<Word> words, String to) throws IOException {
         for (var word:words) {
-            if (Objects.equals(word.getLanguage(), to))
+            if (Objects.equals(word.getLanguage(), to)) {
                 continue;
-            translate(word, to);
+            }
         }
     }
 
-    private String post(String url, String value) throws IOException {
+    private void post(String url, String value, TranslateCallbacks callbacks) {
         // Create http client
         OkHttpClient client = new OkHttpClient();
 
@@ -42,8 +51,25 @@ public class TranslateHelper {
                 .url(url).post(body)
                 .addHeader("Ocp-Apim-Subscription-Key", subscriptionKey)
                 .addHeader("Content-type", "application/json").build();
-        Response response = client.newCall(request).execute();
-        return response.body().string();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                if (callbacks != null)
+                    callbacks.onError(e);
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    throw new IOException("Unexpected code " + response);
+                } else {
+                    // do something wih the result
+                    if (callbacks != null)
+                        callbacks.onSuccess(response.body().string());
+                }
+            }
+        });
     }
 
     private void parseResponse(String json_text, Word word) {

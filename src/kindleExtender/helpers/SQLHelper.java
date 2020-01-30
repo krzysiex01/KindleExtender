@@ -11,14 +11,10 @@ import java.sql.*;
 import java.util.*;
 
 public class SQLHelper {
-    public SQLHelper(String fileURL) {
+    public SQLHelper(String fileURL) throws SQLException {
         this.fileURL = fileURL;
         _conn = connect(fileURL);
-        try {
-            _conn.setAutoCommit(false);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
+        _conn.setAutoCommit(false);
         hasUnsavedChanges = false;
         currentLanguageFilters = getListOfLanguages();
     }

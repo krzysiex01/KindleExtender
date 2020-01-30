@@ -1,21 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="Edit cell bug fixed.">
+    <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="Some optimization changes.">
+      <change afterPath="$PROJECT_DIR$/src/kindleExtender/TranslateCallbacks.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/Main$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/cell/EditCell$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/cell/EditCell$2.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/cell/EditCell.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/cell/EditCell.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/mainPage.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/mainPage.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kindleExtender/CleanUpPageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/CleanUpPageController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kindleExtender/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/MainPageController.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/KindleExtender/kindleExtender/MainPageController.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/kindleExtender/MainPageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/MainPageController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kindleExtender/cell/EditCell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/cell/EditCell.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kindleExtender/helpers/CleanUpHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/helpers/CleanUpHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/kindleExtender/helpers/SQLHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/helpers/SQLHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/kindleExtender/helpers/StatsHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/helpers/StatsHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/kindleExtender/helpers/TranslateHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/helpers/TranslateHelper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/kindleExtender/mainPage.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/kindleExtender/mainPage.fxml" afterDir="false" />
     </list>
@@ -75,6 +66,7 @@
         <option value="FxmlFile" />
         <option value="Enum" />
         <option value="Class" />
+        <option value="Interface" />
       </list>
     </option>
   </component>
@@ -258,11 +250,28 @@
       <option name="project" value="LOCAL" />
       <updated>1579298039133</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Some optimization changes.">
+      <created>1579298514660</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1579298514660</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
     <option name="totallyTimeSpent" value="1302000" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -287,6 +296,7 @@
     <MESSAGE value="Save as option added." />
     <MESSAGE value="Connection to Azure Translator Text API 3.0 added.&#10;Exporting to .csv added." />
     <MESSAGE value="Edit cell bug fixed." />
-    <option name="LAST_COMMIT_MESSAGE" value="Edit cell bug fixed." />
+    <MESSAGE value="Some optimization changes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Some optimization changes." />
   </component>
 </project>

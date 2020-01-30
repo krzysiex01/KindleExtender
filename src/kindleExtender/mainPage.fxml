@@ -13,6 +13,7 @@
                                                 shortcut="UP"/>
                         </accelerator>
                     </MenuItem>
+                    <MenuItem text="Connect Kindle..." onAction="#connectToKindle"/>
                     <MenuItem text="Save" onAction="#saveAction">
                         <accelerator>
                             <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP"
@@ -32,6 +33,12 @@
             </Menu>
             <Menu text="Edit">
                 <items>
+                    <MenuItem text="Select all" onAction="#selectAllLookUps">
+                        <accelerator>
+                            <KeyCodeCombination alt="UP" code="A" control="DOWN" meta="UP" shift="UP"
+                                                shortcut="UP"/>
+                        </accelerator>
+                    </MenuItem>
                     <MenuItem text="Remove selected" onAction="#removeSelectedLookUps">
                         <accelerator>
                             <KeyCodeCombination alt="UP" code="DELETE" control="DOWN" meta="UP" shift="UP"
